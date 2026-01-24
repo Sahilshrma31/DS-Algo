@@ -54,42 +54,33 @@ This is a **shortest path problem** on an implicit graph:
 import java.util.*;
 
 class Solution {
-    class Pair {
-        int f; // distance (steps taken so far)
-        int s; // current node value
-        Pair(int f, int s) {
-            this.f = f;
-            this.s = s;
-        }
-    }
+    public int minimumMultiplications(int[] arr, int start, int end) {
 
-    int minimumMultiplications(int[] arr, int start, int end) {
-        int mod = 100000;
-        int[] dist = new int[mod];
-        Arrays.fill(dist, (int) 1e9);
-        
-        Queue<Pair> q = new LinkedList<>();
+        int MOD = 100000;
+
+        // Distance array
+        int[] dist = new int[MOD];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+
+        Queue<Integer> q = new LinkedList<>();
+        q.offer(start);
         dist[start] = 0;
-        q.add(new Pair(0, start)); // (steps, node)
 
         while (!q.isEmpty()) {
-            Pair curr = q.poll();
-            int distn = curr.f;
-            int node = curr.s;
+            int cur = q.poll();
 
-            if (node == end) {
-                return distn;
-            }
+            if (cur == end) return dist[cur];
 
-            for (int num : arr) {
-                int newNode = (int)((node * 1L * num) % mod);
+            for (int a : arr) {
+                int next = (cur * a) % MOD;
 
-                if (distn + 1 < dist[newNode]) {
-                    dist[newNode] = distn + 1;
-                    q.add(new Pair(dist[newNode], newNode));
+                if (dist[next] > dist[cur] + 1) {
+                    dist[next] = dist[cur] + 1;
+                    q.offer(next);
                 }
             }
         }
+
         return -1;
     }
 }
