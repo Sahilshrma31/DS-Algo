@@ -104,3 +104,84 @@ class Solution {
         System.out.println("Weight of MST = " + mstWeight);
     }
 }
+
+
+ //for printing the whole mst edges
+
+    static class Pair {
+        int node, wt;
+        Pair(int node, int wt) {
+            this.node = node;
+            this.wt = wt;
+        }
+    }
+
+    static class Edge {
+        int wt, node, parent;
+        Edge(int wt, int node, int parent) {
+            this.wt = wt;
+            this.node = node;
+            this.parent = parent;
+        }
+    }
+
+    public static ArrayList<ArrayList<Integer>> calculatePrimsMST(
+            int n, int m, ArrayList<ArrayList<Integer>> g) {
+
+        // adjacency list (1-based indexing)
+        ArrayList<ArrayList<Pair>> adj = new ArrayList<>();
+        for (int i = 0; i <= n; i++) {
+            adj.add(new ArrayList<>());
+        }
+
+        // build graph
+        for (ArrayList<Integer> edge : g) {
+            int u = edge.get(0);
+            int v = edge.get(1);
+            int wt = edge.get(2);
+
+            adj.get(u).add(new Pair(v, wt));
+            adj.get(v).add(new Pair(u, wt));
+        }
+
+        boolean[] vis = new boolean[n + 1];
+
+        PriorityQueue<Edge> pq = new PriorityQueue<>(
+            (a, b) -> Integer.compare(a.wt, b.wt)
+        );
+
+        // result MST edges
+        ArrayList<ArrayList<Integer>> mst = new ArrayList<>();
+
+        // start from node 1
+        pq.offer(new Edge(0, 1, -1));
+
+        while (!pq.isEmpty()) {
+            Edge cur = pq.poll();
+            int node = cur.node;
+            int wt = cur.wt;
+            int parent = cur.parent;
+
+            if (vis[node]) continue;
+
+            vis[node] = true;
+
+            // add edge to MST (ignore starting node)
+            if (parent != -1) {
+                ArrayList<Integer> temp = new ArrayList<>();
+                temp.add(parent);
+                temp.add(node);
+                temp.add(wt);
+                mst.add(temp);
+            }
+
+            for (Pair neigh : adj.get(node)) {
+                if (!vis[neigh.node]) {
+                    pq.offer(new Edge(neigh.wt, neigh.node, node));
+                }
+            }
+        }
+
+        return mst;
+    }
+}
