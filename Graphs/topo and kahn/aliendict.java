@@ -49,22 +49,34 @@ Space Complexity:
 
 import java.util.*;
 
-class Solution {
-    // Function to return a string denoting the order of characters
-    public String findOrder(String[] words, int N, int K) {
-        // Step 1: Build graph
-        ArrayList<ArrayList<Integer>> adj = new ArrayList<>();
-        for (int i = 0; i < K; i++) {
-            adj.add(new ArrayList<>());
+class Solution{
+
+    // Function to find the order of characters in alien dictionary 
+    public static String findOrder(String[] words) {
+        
+        ArrayList<ArrayList<Integer>> graph = new ArrayList<>();
+        int[] inDegree = new int[26];
+        boolean[] exists = new boolean[26];
+
+        // Initialize graph
+        for (int i = 0; i < 26; i++) {
+            graph.add(new ArrayList<>());
         }
 
-        // Step 2: Add edges based on first different character
-        for (int i = 0; i < N - 1; i++) {
+        // Mark characters that exist in the input
+        for (String word : words) {
+            for (char ch : word.toCharArray()) {
+                exists[ch - 'a'] = true;
+            }
+        }
+
+        // Build the graph based on adjacent word comparisons
+        for (int i = 0; i < words.length - 1; i++) {
             String w1 = words[i];
             String w2 = words[i + 1];
             int len = Math.min(w1.length(), w2.length());
-
             int j = 0;
+
             while (j < len && w1.charAt(j) == w2.charAt(j)) {
                 j++;
             }
@@ -72,43 +84,46 @@ class Solution {
             if (j < len) {
                 int u = w1.charAt(j) - 'a';
                 int v = w2.charAt(j) - 'a';
-                adj.get(u).add(v);
+                graph.get(u).add(v);
+                inDegree[v]++;
             } else if (w1.length() > w2.length()) {
-                // Invalid case (prefix problem)
+                
+                // Invalid input
                 return "";
             }
         }
-        // Step 3: Compute indegree
-        int[] indegree = new int[K];
-        for (int i = 0; i < K; i++) {
-            for (int v : adj.get(i)) {
-                indegree[v]++;
+
+        // Topological Sort
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < 26; i++) {
+            if (exists[i] && inDegree[i] == 0) {
+                q.offer(i);
             }
         }
-        // Step 4: Kahn’s BFS Topological Sort
-        Queue<Integer> q = new LinkedList<>();
-        for (int i = 0; i < K; i++) {
-            if (indegree[i] == 0) {
-                q.add(i);
-            }
-        } 
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder result = new StringBuilder();
+
         while (!q.isEmpty()) {
-            int node = q.poll();
-            sb.append((char)(node + 'a'));
+            int u = q.poll();
+            result.append((char) (u + 'a'));
 
-            for (int neigh : adj.get(node)) {
-                indegree[neigh]--;
-                if (indegree[neigh] == 0) {
-                    q.add(neigh);
+            for (int v : graph.get(u)) {
+                inDegree[v]--;
+                if (inDegree[v] == 0) {
+                    q.offer(v);
                 }
             }
         }
 
-        // Step 5: Cycle check (if not all characters included)
-        if (sb.length() < K) return "";
+        // Check for cycle
+        for (int i = 0; i < 26; i++) {
+            if (exists[i] && inDegree[i] != 0) {
+                return "";
+            }
+        }
 
-        return sb.toString();
+        return result.toString();
     }
+
+  
 }
