@@ -25,7 +25,8 @@ Time Complexity:
 - Sorting: O(n log n)
 - Binary search: O(log(maxDiff))
 - Pair validation: O(n)
-Overall: O(n log n)
+Overall: O(n log n + n log D)
+where D = max(nums) - min(nums)
 
 Space Complexity:
 O(1) extra space (excluding sorting)
