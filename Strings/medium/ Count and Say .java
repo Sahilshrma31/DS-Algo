@@ -84,8 +84,6 @@ class Solution {
                 count++;
                 i++;
             }
-
-            // Append count and character
             result.append(count);
             result.append(currentChar);
 
