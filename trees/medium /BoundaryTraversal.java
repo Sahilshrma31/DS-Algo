@@ -49,16 +49,14 @@ public class BoundaryTraversal {
         List<Integer> res = new ArrayList<>();
         if (root == null) return res;
 
-        // 1️⃣ Add root if not leaf
+        //  Add root if not leaf
         if (!isLeaf(root)) res.add(root.val);
 
-        // 2️⃣ Add left boundary
+        //  Add left boundary
         addLeftBoundary(root.left, res);
-
-        // 3️⃣ Add leaf nodes
+        //  Add leaf nodes
         addLeaves(root, res);
-
-        // 4️⃣ Add right boundary in bottom-up order
+        //  Add right boundary in bottom-up order
         addRightBoundary(root.right, res);
 
         return res;
