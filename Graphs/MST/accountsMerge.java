@@ -52,81 +52,122 @@
  * - Storing mappings & groups ≈ O(M + N)
  *
  */
-
 import java.util.*;
-
 class Solution {
-    public static List<List<String>> accountsMerge(List<List<String>> details) {
-        int n = details.size();
-        DisjointSet ds = new DisjointSet(n);
-        HashMap<String, Integer> mapMailNode = new HashMap<>();
 
-        // Step 1: Build Union connections
+    // DSU (Disjoint Set Union) / Union-Find class
+    static class dsu {
+        int[] parent, size;
+
+        // Constructor: initialize DSU with n nodes
+        dsu(int n) {
+            parent = new int[n];
+            size = new int[n];
+
+            // Initially, every node is its own parent
+            // and size of each component is 1
+            for (int i = 0; i < n; i++) {
+                parent[i] = i;
+                size[i] = 1;
+            }
+        }
+
+        // Find function with path compression
+        int find(int node) {
+            // If node is the root, return it
+            if (parent[node] == node)
+                return node;
+
+            // Otherwise, recursively find root
+            // and compress the path
+            return parent[node] = find(parent[node]);
+        }
+
+        // Union two nodes u and v
+        void union(int u, int v) {
+            int pu = find(u); // parent of u
+            int pv = find(v); // parent of v
+
+            // If already in same set, do nothing
+            if (pu == pv) return;
+
+            // Union by size (attach smaller tree to larger)
+            if (size[pu] < size[pv]) {
+                parent[pu] = pv;
+                size[pv] += size[pu];
+            } else {
+                parent[pv] = pu;
+                size[pu] += size[pv];
+            }
+        }
+    }
+
+    public List<List<String>> accountsMerge(List<List<String>> accounts) {
+
+        // Map to store: email -> account index
+        HashMap<String, Integer> map = new HashMap<>();
+
+        int n = accounts.size();
+
+        // Create DSU for n accounts
+        dsu ds = new dsu(n);
+
+        // STEP 1: Map each email to an account
+        // If an email is already seen, union the two accounts
         for (int i = 0; i < n; i++) {
-            for (int j = 1; j < details.get(i).size(); j++) {
-                String mail = details.get(i).get(j);
-                if (!mapMailNode.containsKey(mail)) {
-                    mapMailNode.put(mail, i);
-                } else {
-                    ds.unionBySize(i, mapMailNode.get(mail));
+            // Start from index 1 because index 0 is the name
+            for (int j = 1; j < accounts.get(i).size(); j++) {
+                String email = accounts.get(i).get(j);
+
+                // If email is seen for the first time
+                if (!map.containsKey(email)) {
+                    map.put(email, i);
+                } 
+                // If email already exists, merge the accounts
+                else {
+                    ds.union(i, map.get(email));
                 }
             }
         }
 
-        // Step 2: Group emails by their root parent
-        ArrayList<String>[] mergedMail = new ArrayList[n];
-        for (int i = 0; i < n; i++) mergedMail[i] = new ArrayList<>();
+        
+        // STEP 2: Group emails by their ultimate parent account
+        Map<Integer, List<String>> merged = new HashMap<>();
 
-        for (Map.Entry<String, Integer> it : mapMailNode.entrySet()) {
-            String mail = it.getKey();
-            int node = ds.findUPar(it.getValue());
-            mergedMail[node].add(mail);
+        for (String email : map.keySet()) {
+            int node = map.get(email);        // account index of email
+            int parent = ds.find(node);       // ultimate parent account
+
+            // Add email to its parent's list
+            if (merged.containsKey(parent)) {
+                merged.get(parent).add(email);
+            } else {
+                List<String> list = new ArrayList<>();
+                list.add(email);
+                merged.put(parent, list);
+            }
         }
 
-        // Step 3: Build the final answer
+        // STEP 3: Build the final answer
         List<List<String>> ans = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            if (mergedMail[i].size() == 0) continue;
-            Collections.sort(mergedMail[i]);
+
+        for (int parent : merged.keySet()) {
+
+            // Account name is taken from original accounts list
+            String name = accounts.get(parent).get(0);
+
+            // Get and sort all emails
+            List<String> emails = merged.get(parent);
+            Collections.sort(emails);
+
+            // Prepare final merged account
             List<String> temp = new ArrayList<>();
-            temp.add(details.get(i).get(0)); // account name
-            temp.addAll(mergedMail[i]);      // sorted emails
+            temp.add(name);          // name first
+            temp.addAll(emails);     // then sorted emails
+
             ans.add(temp);
         }
+
         return ans;
-    }
-}
-
-/*
- * 🔹 Disjoint Set Union (Union-Find) with Union by Size & Path Compression
- */
-class DisjointSet {
-    int[] parent, size;
-
-    DisjointSet(int n) {
-        parent = new int[n];
-        size = new int[n];
-        for (int i = 0; i < n; i++) {
-            parent[i] = i;
-            size[i] = 1;
-        }
-    }
-
-    int findUPar(int node) {
-        if (parent[node] == node) return node;
-        return parent[node] = findUPar(parent[node]); // path compression
-    }
-
-    void unionBySize(int u, int v) {
-        int pu = findUPar(u);
-        int pv = findUPar(v);
-        if (pu == pv) return;
-        if (size[pu] < size[pv]) {
-            parent[pu] = pv;
-            size[pv] += size[pu];
-        } else {
-            parent[pv] = pu;
-            size[pu] += size[pv];
-        }
     }
 }
