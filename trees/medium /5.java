@@ -1,118 +1,103 @@
-import java.util.*;
-
-/**
- * 💡 Problem: Binary Tree Zigzag Level Order Traversal (LeetCode 103)
- * 
- * 🧾 Description:
- * Given the root of a binary tree, return the zigzag level order traversal 
- * of its nodes' values. (i.e., from left to right, then right to left for the next level and alternate between).
- * 
+/*
+ * Problem: Check if Two Binary Trees are Identical
+ *
+ * Given two binary trees, determine if they are identical.
+ * Two binary trees are identical if they have the same structure and node values.
+ *
  * Example:
- * Input:
- *         1
- *        / \
- *       2   3
- *      / \   \
- *     4   5   6
- * 
- * Output: [[1], [3, 2], [4, 5, 6]]
- * 
- * -------------------------------------------------------
- * 🧠 Intuition:
- * This is just a normal level order traversal (BFS),
- * but with one small twist — we reverse the order of elements 
- * after every alternate level.
- * 
- * So:
- * - Level 1 → left to right
- * - Level 2 → right to left (reverse)
- * - Level 3 → left to right
- * - and so on…
- * 
- * We can achieve this easily using a queue for BFS and a boolean flag 
- * to track the direction of traversal.
- * 
- * -------------------------------------------------------
- * 🪜 Approach:
- * 1️⃣ Use a queue for normal level order traversal.
- * 2️⃣ Maintain a flag `leftToRight` (initially true).
- * 3️⃣ For each level:
- *     - Take out all nodes of that level.
- *     - Store their values in a temporary list.
- *     - Push their children (left → right).
- *     - If `leftToRight` is false → reverse the list before adding to result.
- *     - Flip the flag for the next level.
- * 
- * -------------------------------------------------------
- * ⏱️ Time Complexity: O(N)
- * - We visit each node exactly once.
- * - Reversing each level costs O(k), but total across all levels ≤ O(N).
- * 
- * 🧮 Space Complexity: O(N)
- * - Queue holds up to N/2 nodes in the worst case (last level).
- * - Result list also stores all N values.
- * 
- * -------------------------------------------------------
- * ✅ Implementation:
+ * Tree 1:       Tree 2:
+ *     1             1
+ *    / \           / \
+ *   2   3         2   3
+ * Output: true
+ *
+ * Approaches:
+ * 1. Recursive Approach (DFS)
+ *    - Compare nodes recursively
+ *    - Time: O(n), Space: O(h) recursion stack
+ *
+ * 2. BFS/Iterative Approach
+ *    - Use two queues to traverse level by level
+ *    - Time: O(n), Space: O(n)
  */
 
-public class ZigzagLevelOrderTraversal {
-    // Definition for a binary tree node.
-    public static class TreeNode {
-        int val;
-        TreeNode left;
-        TreeNode right;
+import java.util.LinkedList;
+import java.util.Queue;
 
-        TreeNode() {}
-        TreeNode(int val) { this.val = val; }
-        TreeNode(int val, TreeNode left, TreeNode right) {
-            this.val = val;
-            this.left = left;
-            this.right = right;
-        }
-    }
+class TreeNode {
+    int val;
+    TreeNode left, right;
 
-    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
-        List<List<Integer>> res = new ArrayList<>();
-        Queue<TreeNode> queue = new LinkedList<>();
-
-        if (root == null) {
-            return res; // handle empty tree
-        }
-
-        queue.offer(root);
-        boolean leftToRight = true; // true → left→right, false → right→left
-
-        while (!queue.isEmpty()) {
-            int size = queue.size();
-            List<Integer> temp = new ArrayList<>();
-
-            for (int i = 0; i < size; i++) {
-                TreeNode curr = queue.poll();
-                temp.add(curr.val);
-
-                if (curr.left != null) queue.add(curr.left);
-                if (curr.right != null) queue.add(curr.right);
-            }
-
-            if (!leftToRight) {
-                Collections.reverse(temp); // reverse alternate levels
-            }
-
-            res.add(temp);
-            leftToRight = !leftToRight; // flip the direction
-        }
-
-        return res;
-    }
-
-    // 🔍 Optional: Example main method for quick local testing
-    public static void main(String[] args) {
-        ZigzagLevelOrderTraversal sol = new ZigzagLevelOrderTraversal();
-        TreeNode root = new TreeNode(1,
-                            new TreeNode(2, new TreeNode(4), new TreeNode(5)),
-                            new TreeNode(3, null, new TreeNode(6))
-                        );
-        System.out.println(sol.zigzagLevelOrder(root));
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
     }
 }
+
+class Solution {
+
+    // 1. Recursive DFS Approach
+    public boolean isSameTreeDFS(TreeNode p, TreeNode q) {
+        if (p == null && q == null) return true;
+        if (p == null || q == null) return false;
+        if (p.val != q.val) return false;
+
+        return isSameTreeDFS(p.left, q.left) && isSameTreeDFS(p.right, q.right);
+    }
+
+    // 2. BFS/Iterative Approach
+    public boolean isSameTreeBFS(TreeNode p, TreeNode q) {
+        if (p == null && q == null) return true;
+        if (p == null || q == null) return false;
+
+        Queue<TreeNode> que1 = new LinkedList<>();
+        Queue<TreeNode> que2 = new LinkedList<>();
+
+        que1.offer(p);
+        que2.offer(q);
+
+        while (!que1.isEmpty() && !que2.isEmpty()) {
+            TreeNode node1 = que1.poll();
+            TreeNode node2 = que2.poll();
+
+            if (node1.val != node2.val) return false;
+
+            // Check left children
+            if (node1.left != null && node2.left != null) {
+                que1.offer(node1.left);
+                que2.offer(node2.left);
+            } else if (node1.left != null || node2.left != null) {
+                return false;
+            }
+
+            // Check right children
+            if (node1.right != null && node2.right != null) {
+                que1.offer(node1.right);
+                que2.offer(node2.right);
+            } else if (node1.right != null || node2.right != null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+/*
+ * Complexity Analysis:
+ *
+ * DFS/Recursive:
+ * - Time: O(n) → each node visited once
+ * - Space: O(h) → recursion stack, h = tree height
+ *
+ * BFS/Iterative:
+ * - Time: O(n) → each node visited once
+ * - Space: O(n) → queue can hold nodes from a level in worst-case
+ *
+ * Notes:
+ * - Recursive approach is simple and readable
+ * - BFS approach avoids stack overflow for very deep trees
+ */
