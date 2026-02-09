@@ -159,32 +159,41 @@ class Solution {
 
 /* ---------------- Brute Force Solution (Inorder + Sort + Replace) ---------------- */
 
-class SolutionBrute {
+class Solution {
+    List<TreeNode> nodes=new ArrayList<>();  //for reference of node
+    List<Integer> values=new ArrayList<>(); //for values
 
     public void recoverTree(TreeNode root) {
+        inorder(root);
 
-        List<Integer> inorder = new ArrayList<>();
-        storeInorder(root, inorder);
+        List<Integer> sorted=new ArrayList<>(values);
+        Collections.sort(sorted);
 
-        Collections.sort(inorder);
+        TreeNode first=null; TreeNode second=null;
 
-        int[] idx = new int[]{0};
-        replaceInorder(root, inorder, idx);
+        for(int i=0;i<sorted.size();i++){
+            if(values.get(i)!=sorted.get(i)){
+                if(first==null){
+                    first=nodes.get(i);
+                }else{
+                    second=nodes.get(i);
+                }
+            }
+        }
+
+        int temp=first.val;
+        first.val=second.val;
+        second.val=temp;
     }
 
-    private void storeInorder(TreeNode root, List<Integer> list) {
-        if (root == null) return;
+    public void inorder(TreeNode root){
+        if(root==null){
+            return;
+        }
+        inorder(root.left);
+        values.add(root.val);
+        nodes.add(root);
+        inorder(root.right);
 
-        storeInorder(root.left, list);
-        list.add(root.val);
-        storeInorder(root.right, list);
-    }
-
-    private void replaceInorder(TreeNode root, List<Integer> list, int[] idx) {
-        if (root == null) return;
-
-        replaceInorder(root.left, list, idx);
-        root.val = list.get(idx[0]++);
-        replaceInorder(root.right, list, idx);
     }
 }
