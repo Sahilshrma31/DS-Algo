@@ -58,8 +58,16 @@ class Solution {
     Space Complexity: O(n) (recursion stack)
     ====================================================
     */
-    private int solveRec(int day, int last, int[][] points) {
+  public class Solution {
 
+    public static int ninjaTraining(int n, int[][] points) {
+        // Start from last day, and no previous task (use 3 as dummy)
+        return solveRec(n - 1, 3, points);
+    }
+
+    private static int solveRec(int day, int last, int[][] points) {
+
+        // Base case: day 0
         if (day == 0) {
             int max = 0;
             for (int task = 0; task < 3; task++) {
@@ -71,15 +79,19 @@ class Solution {
         }
 
         int max = 0;
+
+        // Try all tasks except the one done on previous day (last)
         for (int task = 0; task < 3; task++) {
             if (task != last) {
-                int val = points[day][task]
-                        + solveRec(day - 1, task, points);
+                int val = points[day][task] + solveRec(day - 1, task, points);
                 max = Math.max(max, val);
             }
         }
+
         return max;
     }
+}
+
 
     /*
     ====================================================
