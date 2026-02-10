@@ -71,6 +71,8 @@ public class FrogJumpK {
         if (idx == 0) return 0;
         if (dp[idx] != -1) return dp[idx];
         int ans = Integer.MAX_VALUE;
+
+        
         for (int j = 1; j <= k; j++) {
             if (idx - j >= 0) {
                 int cost = memoHelper(height, k, idx - j, dp) + Math.abs(height[idx] - height[idx - j]);
