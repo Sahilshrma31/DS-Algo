@@ -1,6 +1,6 @@
 /*
 ====================================================
-📌 Problem: Find Median from Data Stream (LeetCode 295)
+📌 Problem: Find Median from Data Stream 
 ====================================================
 
 Design a data structure that supports:
