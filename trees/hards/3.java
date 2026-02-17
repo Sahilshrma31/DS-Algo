@@ -1,136 +1,138 @@
+import java.util.*;
+
 /*
-Problem: Maximum Width of Binary Tree
-(LeetCode 662)
-
-Problem Explanation:
-You are given the root of a binary tree.
-The width of one level is defined as the length between the
-leftmost and rightmost non-null nodes at that level,
-counting the null nodes in between.
-
-You need to return the maximum width among all levels.
+Problem: Width of Binary Tree (LeetCode 662)
 
 --------------------------------------------------
-Key Intuition:
+Problem Summary:
 --------------------------------------------------
-This problem is NOT about counting nodes at a level.
+Given the root of a binary tree, return the maximum width of the tree.
 
-Instead, it is about:
-- Treating the tree as if it were a complete binary tree
-- Assigning each node an index like in array representation
-
-Index rules:
-- root index = 0
-- left child  = 2 * index + 1
-- right child = 2 * index + 2
-
-Then:
-Width of a level =
-(lastIndex - firstIndex + 1)
+The width of a level is defined as the length between the leftmost and
+rightmost non-null nodes at that level, including null nodes between them
+as they would appear in a complete binary tree representation.
 
 --------------------------------------------------
-Why Indexing Works:
+Intuition:
 --------------------------------------------------
-Even if nodes are missing in between,
-their "virtual positions" still matter for width.
+If we assign indices to nodes as in a complete binary tree:
+- root at index 0
+- left child at 2*i + 1
+- right child at 2*i + 2
 
-Using indices preserves the horizontal distance
-between nodes correctly.
+Then, for any level:
+width = (lastIndex - firstIndex + 1)
+
+However, raw indices can grow very large and cause overflow.
+So at every level, we normalize indices by subtracting the minimum index
+of that level (mmin). This keeps values small and safe.
 
 --------------------------------------------------
-Approach: Level Order Traversal (BFS)
+Approach:
 --------------------------------------------------
-1. Use a queue storing (TreeNode, index)
-2. For each level:
-   - Note index of first and last node
-   - Update maximum width
-3. Push children with calculated indices
-4. Use long to avoid overflow
+1. Perform level order traversal using a queue.
+2. Store for each node:
+   - the TreeNode
+   - its index in the complete binary tree representation
+3. At each level:
+   - record the first and last normalized index
+   - compute width = last - first + 1
+4. Track the maximum width.
 
 --------------------------------------------------
 Time Complexity:
 --------------------------------------------------
 O(n)
-
 Each node is visited once.
 
 --------------------------------------------------
 Space Complexity:
 --------------------------------------------------
 O(n)
-
-Queue storage in worst case.
+Queue stores nodes of a level in the worst case.
 
 --------------------------------------------------
 Example:
 --------------------------------------------------
-
 Tree:
         1
        / \
       3   2
-     / \   \
-    5   3   9
+     /     \
+    5       9
 
-Indices:
-Level 0: [0]
-Level 1: [1, 2]
-Level 2: [3, 4, 6]
-
-Width at level 2 = 6 - 3 + 1 = 4
+Level 2 indices: 1 and 4
+Width = 4 - 1 + 1 = 4
 
 --------------------------------------------------
 */
 
-import java.util.*;
+/**
+ * Definition for a binary tree node.
+ */
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
 
 class Solution {
 
-    static class Pair {
+    class Pair {
         TreeNode node;
-        long idx;
+        int idx;
 
-        Pair(TreeNode node, long idx) {
+        Pair(TreeNode node, int idx) {
             this.node = node;
             this.idx = idx;
         }
     }
 
     public int widthOfBinaryTree(TreeNode root) {
-
-        if (root == null) return 0;
+        if (root == null) {
+            return 0;
+        }
 
         Queue<Pair> queue = new LinkedList<>();
-        queue.offer(new Pair(root, 0L));
+        queue.add(new Pair(root, 0));
 
-        long maxWidth = 0;
+        int maxi = 0;
 
         while (!queue.isEmpty()) {
 
+            int first = 0;
+            int last = 0;
+
+            int mmin = queue.peek().idx;  // normalize indices at each level
             int size = queue.size();
-            long firstIdx = queue.peek().idx;
-            long lastIdx = firstIdx;
 
             for (int i = 0; i < size; i++) {
-
                 Pair curr = queue.poll();
+                int curridx = curr.idx - mmin;
                 TreeNode node = curr.node;
-                long idx = curr.idx;
 
-                lastIdx = idx;
+                if (i == 0) first = curridx;
+                if (i == size - 1) last = curridx;
 
                 if (node.left != null) {
-                    queue.offer(new Pair(node.left, 2 * idx + 1));
+                    queue.add(new Pair(node.left, 2 * curridx + 1));
                 }
 
                 if (node.right != null) {
-                    queue.offer(new Pair(node.right, 2 * idx + 2));
+                    queue.add(new Pair(node.right, 2 * curridx + 2));
                 }
             }
 
-            maxWidth = Math.max(maxWidth, lastIdx - firstIdx + 1);
+            maxi = Math.max(maxi, last - first + 1);
         }
 
-        return (int) maxWidth;
+        return maxi;
     }
 }
