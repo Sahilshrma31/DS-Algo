@@ -112,7 +112,8 @@ class p1 {
 
         int[][] dp = new int[n + 1][m + 1];
 
-        // dp[0][*] and dp[*][0] are already 0
+        //dp[*][0] and dp[0][*] are 0 already as we have shfited the indexes the 0 
+       //index refers to -1 index where the lcs is 0
 
         for (int i = 1; i <= n; i++) {
             for (int j = 1; j <= m; j++) {
