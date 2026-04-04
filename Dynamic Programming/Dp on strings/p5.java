@@ -14,7 +14,7 @@ To make a string palindrome with minimum insertions:
 
 👉 Minimum Insertions =
    length(s) - Longest Palindromic Subsequence (LPS)
-
+f
 Why?
 - Characters that are already part of the LPS
   don’t need any insertion.
