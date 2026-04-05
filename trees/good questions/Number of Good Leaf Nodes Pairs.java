@@ -1,5 +1,7 @@
 import java.util.*;
 
+import javax.swing.tree.TreeNode;
+
 /*
 Problem: Number of Good Leaf Node Pairs (LeetCode 1530)
 
@@ -16,42 +18,32 @@ A leaf node is a node with no children.
 Key Observations
 --------------------------------------------------
 1. We only care about leaf nodes.
-2. We need distance between every pair of leaf nodes.
-3. Distance = number of edges between two nodes.
-4. Tree can be converted into an undirected graph.
-5. Then we can run BFS from each leaf node.
+2. Distance between nodes = number of edges.
+3. Tree can be converted into an undirected graph.
+4. BFS can be used to find nodes within a given distance.
 
 --------------------------------------------------
 Intuition
 --------------------------------------------------
-Instead of directly computing distances in a tree,
-we convert the tree into a graph.
+Instead of solving directly on the tree, we convert the
+tree into a graph so that we can move both upwards and
+downwards.
 
-Then:
-- Start BFS from each leaf node
-- Explore all nodes up to given distance
+Then for every leaf node:
+- Run BFS up to the given distance
 - Count how many other leaf nodes are reachable
 
-Since each pair is counted twice → divide by 2.
+Each pair will be counted twice, so divide by 2.
 
 --------------------------------------------------
 Approach
 --------------------------------------------------
-1. Convert tree → graph (adjacency list)
-2. Collect all leaf nodes
-3. For each leaf:
+1. Convert tree → graph using adjacency list.
+2. Store all leaf nodes in a set.
+3. For each leaf node:
    - Run BFS up to 'distance'
    - Count reachable leaf nodes
-4. Divide total count by 2
-
---------------------------------------------------
-State Definition
---------------------------------------------------
-No DP used here.
-
-We use:
-- Graph traversal (BFS)
-- Visited set for each BFS
+4. Return count / 2.
 
 --------------------------------------------------
 Time Complexity
@@ -60,8 +52,6 @@ O(L * N)
 
 L = number of leaf nodes  
 N = total nodes  
-
-Worst case: BFS from each leaf
 
 --------------------------------------------------
 Space Complexity
@@ -77,20 +67,17 @@ distance = 3
 
 Output:
 1
-
-Explanation:
-Only one valid pair of leaf nodes within distance.
 */
 
 class Solution {
 
     /*
     --------------------------------------------------
-    Step 1: Convert Tree to Graph + Find Leaf Nodes
+    Step 1: Build Graph + Identify Leaf Nodes
     --------------------------------------------------
     */
 
-    public void makeGraph(TreeNode root, TreeNode parent,
+    public void makeGraph(TreeNode root, TreeNode prev,
                           Map<TreeNode, List<TreeNode>> adj,
                           Set<TreeNode> leafNodes) {
 
@@ -101,14 +88,17 @@ class Solution {
             leafNodes.add(root);
         }
 
-        // Create bidirectional edge
-        if (parent != null) {
+        if (prev != null) {
 
-            adj.putIfAbsent(root, new ArrayList<>());
-            adj.putIfAbsent(parent, new ArrayList<>());
+            if (!adj.containsKey(root)) {
+                adj.put(root, new ArrayList<>());
+            }
+            adj.get(root).add(prev);
 
-            adj.get(root).add(parent);
-            adj.get(parent).add(root);
+            if (!adj.containsKey(prev)) {
+                adj.put(prev, new ArrayList<>());
+            }
+            adj.get(prev).add(root);
         }
 
         makeGraph(root.left, root, adj, leafNodes);
@@ -117,7 +107,7 @@ class Solution {
 
     /*
     --------------------------------------------------
-    Main Function (BFS from each leaf)
+    Step 2: BFS from each leaf node
     --------------------------------------------------
     */
 
@@ -126,12 +116,10 @@ class Solution {
         Map<TreeNode, List<TreeNode>> adj = new HashMap<>();
         Set<TreeNode> leafNodes = new HashSet<>();
 
-        // Build graph
         makeGraph(root, null, adj, leafNodes);
 
         int count = 0;
 
-        // BFS from each leaf
         for (TreeNode leaf : leafNodes) {
 
             Queue<TreeNode> queue = new LinkedList<>();
@@ -148,23 +136,25 @@ class Solution {
 
                     TreeNode curr = queue.poll();
 
-                    // Check if another leaf node found
                     if (curr != leaf && leafNodes.contains(curr)) {
                         count++;
                     }
 
-                    for (TreeNode neighbor : adj.getOrDefault(curr, new ArrayList<>())) {
+                    List<TreeNode> neighbors = adj.get(curr);
 
-                        if (!visited.contains(neighbor)) {
-                            queue.add(neighbor);
-                            visited.add(neighbor);
+                    if (neighbors != null) {
+                        for (TreeNode next : neighbors) {
+
+                            if (!visited.contains(next)) {
+                                queue.add(next);
+                                visited.add(next);
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Each pair counted twice
         return count / 2;
     }
 }
